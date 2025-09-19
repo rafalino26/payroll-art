@@ -1,103 +1,134 @@
-import Image from "next/image";
+// file: app/page.tsx
+import { getLatestPayrollData, getPeriodById, getAllPeriods} from './action';
+import { calculateWorkDays } from '../app/lib/utils';
+import NewPeriodModal from './components/NewPeriodModal'; 
+import PeriodSelector from './components/PeriodSelector';
+import CreatePeriodForm from './components/CreatePeriodForm';
+import SummaryCard from './components/SummaryCard';
+import SalaryCard from './components/SalaryCard';
+import DebtCard from './components/DebtCard';
+import AbsenceCard from './components/AbsenceCard';
+import ClientOnlyDate from './components/ClientOnlyDate';
+import EditPeriodModal from './components/EditPeriodModal';
+import DeletePeriodButton from './components/DeletePeriodButton'; 
+import TabManager from './components/TabManager';         
+import DataTableView from './components/DataTableView'; 
+import AddDebtModal from './components/AddDebtModal';     // <-- IMPORT BARU
+import AddAbsenceModal from './components/AddAbsenceModal';
 
-export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+export default async function HomePage({ searchParams }: { searchParams: { periodId?: string } }) {
+  const periodId = searchParams.periodId;
+  let data;
+  if (periodId) {
+    data = await getPeriodById(periodId);
+  } else {
+    data = await getLatestPayrollData();
+  }
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy no
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const allPeriods = await getAllPeriods();
+
+  if (!data) {
+    return (
+      // --- PERUBAHAN DI SINI ---
+      <main className="min-h-screen bg-gray-100">
+        <div className="bg-purple-100 py-2 text-center text-sm font-semibold text-purple-800 shadow-sm">
+          Payroll Gaji
+        </div>
+        <div className="flex flex-col items-center justify-center p-4 pt-16">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-800">Selamat Datang!</h1>
+            <p className="text-gray-500">Mulai dengan membuat periode penggajian pertama Anda.</p>
+          </div>
+          <CreatePeriodForm />
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+    );
+  }
+
+  const totalWorkDays = calculateWorkDays(data.startDate, data.endDate);
+  const totalAbsences = data.absences.length;
+  const adjustedWorkDays = totalWorkDays + data.workdayAdjustment;
+  const totalDaysPresent = adjustedWorkDays - totalAbsences;
+  const totalSalary = totalDaysPresent * data.dailyRate;
+  const totalDebt = data.debts.reduce((sum, debt) => sum + debt.amount, 0);
+  // Net Salary sekarang memperhitungkan lembur
+  const netSalary = (totalSalary + data.overtimePay) - totalDebt;
+
+  return (
+    // --- PERUBAHAN DI SINI ---
+    <main className="bg-white min-h-screen">
+      {/* Aksen Ungu Baru */}
+      <div className="bg-purple-100 py-2 text-center text-sm font-semibold text-purple-800 shadow-sm">
+        Payroll Gaji
+      </div>
+      
+      {/* Wrapper Konten Utama */}
+      <div className="p-4 sm:p-6 md:p-8">
+        <div className="max-w-md mx-auto space-y-6">
+          <header className="text-center space-y-3">
+            
+            <div className="flex justify-center items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-800">{data.name}</h1>
+              <EditPeriodModal period={data} />
+               <DeletePeriodButton periodId={data.id} periodName={data.name} />
+            </div>
+            
+            <p className="text-gray-500">
+              Periode: <ClientOnlyDate date={data.startDate} options={{ day: 'numeric', month: 'long' }} /> - <ClientOnlyDate date={data.endDate} options={{ day: 'numeric', month: 'long', year: 'numeric' }} />
+            </p>
+
+            <div className="flex justify-between items-center">
+              <PeriodSelector periods={allPeriods} currentPeriodId={data.id} />
+              <NewPeriodModal />
+            </div>
+          </header>
+
+          <SummaryCard netSalary={netSalary} />
+          <TabManager
+            strukView={
+              <div className="space-y-4">
+                 <div className="flex justify-center gap-3">
+            <AddDebtModal periodId={data.id} />
+            <AddAbsenceModal periodId={data.id} />
+          </div>
+                <SalaryCard
+                  periodId={data.id}
+                  totalWorkDays={totalWorkDays}
+                  totalAbsences={totalAbsences}
+                  dailyRate={data.dailyRate}
+                  debts={data.debts}
+                  adjustment={data.workdayAdjustment}
+                  adjustmentReason={data.adjustmentReason}
+                  overtimePay={data.overtimePay}
+                  netSalary={netSalary} // <-- Tambahkan baris ini
+                />
+                <DebtCard debts={data.debts} totalDebt={totalDebt} periodId={data.id} />
+                <AbsenceCard absences={data.absences} periodId={data.id} />
+              </div>
+            }
+            tableView={
+              <div className="space-y-4">
+                 <div className="flex justify-center gap-3">
+            <AddDebtModal periodId={data.id} />
+            <AddAbsenceModal periodId={data.id} />
+          </div>
+              <DataTableView 
+                period={data} // Kirim seluruh data periode
+                salaryData={{
+                  totalWorkDays,
+                  totalAbsences,
+                  adjustedWorkDays,
+                  totalDaysPresent,
+                  totalSalary,
+                  totalDebt,
+                  netSalary
+                }}
+              />
+              </div>
+            }
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+        </div>
+      </div>
+    </main>
   );
 }

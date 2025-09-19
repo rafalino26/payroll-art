@@ -1,0 +1,95 @@
+// file: app/components/DataTableView.tsx
+
+import { formatCurrency } from '../lib/utils';
+import DebtDetailsModal from './DebtDetailsModal';
+import AbsenceDetailsModal from './AbsenceDetailsModal'; // <-- Import baru
+import EditDailyRateModal from './EditDailyRateModal';
+import EditWorkdayAdjustmentModal from './EditWorkdayAdjustmentModal';
+import EditOvertimeModal from './EditOvertimeModal';
+
+type PeriodData = {
+  id: string;
+  dailyRate: number;
+  workdayAdjustment: number;
+  adjustmentReason: string | null;
+  debts: { id: string, description: string, amount: number }[];
+  absences: { id: string, date: Date }[];
+  overtimePay: number;
+};
+type SalaryCalculations = {
+  totalWorkDays: number;
+  adjustedWorkDays: number;
+  totalAbsences: number;
+  totalDaysPresent: number;
+  totalSalary: number;
+  totalDebt: number;
+  netSalary: number;
+};
+type Props = { period: PeriodData; salaryData: SalaryCalculations; };
+
+export default function DataTableView({ period, salaryData }: Props) {
+  return (
+    <div className="bg-white rounded-lg shadow-sm border overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rincian</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Hari Kerja</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Absen</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total Utang</th>
+             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Lembur</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gaji Diterima</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          <tr className="hover:bg-gray-50">
+            {/* Kolom Rincian */}
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="font-medium text-gray-900">Gaji Pokok</div>
+              <div className="text-sm text-gray-500 flex items-center gap-2">
+                <span>{formatCurrency(period.dailyRate)} / hari</span>
+                <EditDailyRateModal periodId={period.id} currentRate={period.dailyRate} />
+              </div>
+            </td>
+            {/* Kolom Hari Kerja */}
+            <td className="px-6 py-4 whitespace-nowrap text-center">
+              <div className="flex items-center justify-center gap-2">
+                <span className="font-bold text-gray-800">{salaryData.adjustedWorkDays}</span>
+                <EditWorkdayAdjustmentModal 
+                  periodId={period.id}
+                  totalWorkDays={salaryData.totalWorkDays}
+                  currentAdjustment={period.workdayAdjustment}
+                  currentReason={period.adjustmentReason}
+                />
+              </div>
+            </td>
+            {/* Kolom Absen */}
+            <td className="px-6 py-4 whitespace-nowrap text-center">
+              <div className="flex items-center justify-center gap-2">
+                <span className="font-bold text-yellow-600">{salaryData.totalAbsences}</span>
+                {period.absences.length > 0 && <AbsenceDetailsModal absences={period.absences} />}
+              </div>
+            </td>
+            {/* Kolom Total Utang */}
+            <td className="px-6 py-4 whitespace-nowrap text-center">
+              <div className="flex items-center justify-center gap-2">
+                <span className="font-bold text-red-600">{formatCurrency(salaryData.totalDebt)}</span>
+                {period.debts.length > 0 && <DebtDetailsModal debts={period.debts} />}
+              </div>
+            </td>
+              <td className="px-6 py-4 whitespace-nowrap text-center">
+              <div className="flex items-center justify-center gap-2">
+                <span className="font-bold text-green-600">{formatCurrency(period.overtimePay)}</span>
+                <EditOvertimeModal periodId={period.id} currentOvertime={period.overtimePay} />
+              </div>
+            </td>
+            {/* Kolom Gaji Diterima */}
+            <td className="px-6 py-4 whitespace-nowrap font-bold text-lg text-gray-900">
+              {formatCurrency(salaryData.netSalary)}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}

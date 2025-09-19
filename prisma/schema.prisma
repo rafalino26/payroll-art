@@ -1,0 +1,50 @@
+// file: prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PayrollPeriod {
+  id        String    @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  
+  // --- UBAH & TAMBAHKAN BARIS INI ---
+  dailyRate         Int     @default(75000) // Gaji per hari untuk periode ini
+  workdayAdjustment Int     @default(0)       // Penyesuaian hari kerja (+/-)
+  adjustmentReason  String?                   // Alasan penyesuaian (opsional)
+
+  overtimePay       Int     @default(0)  
+
+  absences  Absence[]
+  debts     Debt[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+// Menyimpan setiap utang
+model Debt {
+  id              String        @id @default(cuid())
+  description     String
+  amount          Int
+  date            DateTime      @default(now())
+  
+  payrollPeriodId String
+  payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id])
+}
+
+// Menyimpan setiap tanggal absen
+model Absence {
+  id              String        @id @default(cuid())
+  date            DateTime
+  
+  payrollPeriodId String
+  payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id])
+}
