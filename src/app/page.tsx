@@ -16,8 +16,12 @@ import DataTableView from './components/DataTableView';
 import AddDebtModal from './components/AddDebtModal';     // <-- IMPORT BARU
 import AddAbsenceModal from './components/AddAbsenceModal';
 
-export default async function HomePage({ searchParams }: { searchParams: { periodId?: string } }) {
-  const periodId = searchParams.periodId;
+type PageProps = {
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export default async function HomePage({ searchParams }: PageProps) {
+  const periodId = searchParams.periodId as string;
   let data;
   if (periodId) {
     data = await getPeriodById(periodId);
