@@ -20,10 +20,7 @@ type Props = {
 
 export default function SalaryCard({ periodId, totalWorkDays, totalAbsences, dailyRate, debts, adjustment, adjustmentReason, overtimePay, netSalary }: Props) {
   const adjustedWorkDays = totalWorkDays + adjustment;
-  const totalDaysPresent = adjustedWorkDays - totalAbsences;
-  const totalSalary = totalDaysPresent * dailyRate;
   const totalDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
-  const grossSalary = (totalDaysPresent * dailyRate) + overtimePay;
 
   // Komponen kecil untuk setiap baris agar kode lebih bersih
   const InfoRow = ({ label, children }: { label: React.ReactNode, children: React.ReactNode }) => (
