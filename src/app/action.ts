@@ -1,11 +1,9 @@
 // file: app/actions.ts
 'use server';
 
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/app/lib/prisma'
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-
-const prisma = new PrismaClient();
 
 // Mengambil periode terbaru
 export async function getLatestPayrollData() {
