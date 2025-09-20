@@ -5,14 +5,16 @@ import { useState, useRef } from 'react';
 import { FiPlus } from 'react-icons/fi';
 import { addDebt } from '../action';
 import CurrencyInput from './CurrencyInput';
+import SubmitButton from './SubmitButton'; // <-- 1. Import SubmitButton
 
 export default function AddDebtModal({ periodId }: { periodId: string }) {
   const [isOpen, setIsOpen] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
+  // State untuk me-reset form dengan trik 'key'
+  const [formKey, setFormKey] = useState(Date.now()); // <-- 2. Tambahkan state key
 
   const handleAction = async (formData: FormData) => {
     await addDebt(formData);
-    formRef.current?.reset();
+    setFormKey(Date.now()); // <-- 3. Ubah key untuk me-reset form
     setIsOpen(false);
   };
 
@@ -30,7 +32,11 @@ export default function AddDebtModal({ periodId }: { periodId: string }) {
           <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" onClick={() => setIsOpen(false)}></div>
           <div className="relative z-10 w-full max-w-sm p-6 bg-white rounded-2xl shadow-lg">
             <h3 className="text-lg font-bold text-gray-900 mb-4">Tambah Utang Baru</h3>
-            <form ref={formRef} action={handleAction} className="space-y-4 text-black">
+            <form 
+              key={formKey} // <-- 4. Terapkan key ke form
+              action={handleAction} 
+              className="space-y-4 text-black"
+            >
               <input type="hidden" name="periodId" value={periodId} />
               <div>
                 <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Keterangan</label>
@@ -42,7 +48,11 @@ export default function AddDebtModal({ periodId }: { periodId: string }) {
               </div>
               <div className="flex gap-4 pt-2">
                 <button type="button" onClick={() => setIsOpen(false)} className="w-full py-2 border rounded-lg text-sm">Batal</button>
-                <button type="submit" className="w-full py-2 bg-purple-500 text-white rounded-lg text-sm font-semibold">Simpan</button>
+                
+                {/* --- 5. Ganti <button> dengan <SubmitButton> --- */}
+                <SubmitButton className="w-full py-2 bg-purple-500 text-white rounded-lg text-sm font-semibold">
+                  Simpan
+                </SubmitButton>
               </div>
             </form>
           </div>

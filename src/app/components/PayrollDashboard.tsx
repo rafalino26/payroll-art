@@ -20,6 +20,7 @@ type PeriodData = {
   workdayAdjustment: number;
   adjustmentReason: string | null;
   overtimePay: number;
+  cashAdvance: number;
   debts: { id: string; description: string; amount: number; }[];
   absences: { id: string; date: Date; }[];
 };
@@ -66,19 +67,21 @@ export default function PayrollDashboard({ data, allPeriods, calculations }: Pay
 
           <SummaryCard netSalary={netSalary} />
           <TabManager
-            strukView={
-              <div className="space-y-4">
-                <SalaryCard
-                  periodId={data.id}
-                  totalWorkDays={totalWorkDays}
-                  totalAbsences={totalAbsences}
-                  dailyRate={data.dailyRate}
-                  debts={data.debts}
-                  adjustment={data.workdayAdjustment}
-                  adjustmentReason={data.adjustmentReason}
-                  overtimePay={data.overtimePay}
-                  netSalary={netSalary}
-                />
+        strukView={
+          <div className="space-y-4">
+            <SalaryCard
+              periodId={data.id}
+              totalWorkDays={totalWorkDays}
+              totalAbsences={totalAbsences}
+              totalDaysPresent={totalDaysPresent} // <-- Teruskan ini
+              dailyRate={data.dailyRate}
+              debts={data.debts}
+              adjustment={data.workdayAdjustment}
+              adjustmentReason={data.adjustmentReason}
+              overtimePay={data.overtimePay}
+              cashAdvance={data.cashAdvance}       // <-- Teruskan ini
+              netSalary={netSalary}
+            />
                 <DebtCard debts={data.debts} totalDebt={totalDebt} periodId={data.id} />
                 <AbsenceCard absences={data.absences} periodId={data.id} />
               </div>

@@ -1,23 +1,21 @@
 // file: app/components/DebtCard.tsx
 "use client";
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { addDebt, updateDebt, deleteDebt } from '../action';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency } from '@/app/lib/utils';
 import CurrencyInput from './CurrencyInput';
-import { FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi'; // Import ikon
+import { FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi';
 import ConfirmationModal from './ConfirmationModal'; 
+import SubmitButton from './SubmitButton'; // <-- 1. Import SubmitButton
 
-// Tipe data tidak berubah
 type Debt = { id: string; description: string; amount: number; };
 type DebtCardProps = { debts: Debt[]; totalDebt: number; periodId: string; };
 
-// --- Komponen Baris Utang yang Diperbarui ---
 function DebtItem({ debt }: { debt: Debt }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
 
-  // Tampilan saat mode EDIT
   if (isEditing) {
     return (
       <form
@@ -37,35 +35,35 @@ function DebtItem({ debt }: { debt: Debt }) {
         />
         <CurrencyInput
           name="amount"
-          defaultValue={debt.amount} // <-- Nilai awal untuk input jumlah
+          defaultValue={debt.amount}
           className="w-28 p-2 border rounded-md text-sm"
           required
         />
         <div className="flex items-center gap-2">
-          <button type="submit" className="text-green-600 hover:text-green-800"><FiSave size={20} /></button>
+          {/* --- 2. Ganti tombol Simpan di form EDIT --- */}
+          <SubmitButton className="text-green-600 hover:text-green-800">
+            <FiSave size={20} />
+          </SubmitButton>
           <button type="button" onClick={() => setIsEditing(false)} className="text-gray-500 hover:text-gray-700"><FiXCircle size={20} /></button>
         </div>
       </form>
     );
   }
 
-  // Tampilan Normal
   return (
-     <>
+    <>
       <li className="flex justify-between items-center text-sm text-gray-700 p-2 rounded transition-colors hover:bg-gray-100">
         <span className="flex-1 truncate pr-4">{debt.description}</span>
         <div className="flex items-center gap-4">
           <span className="font-medium w-20 text-right">{formatCurrency(debt.amount)}</span>
           <div className="flex items-center gap-3">
             <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
-            {/* --- UBAH ONCLICK DI SINI --- */}
             <button onClick={() => setIsConfirmOpen(true)} className="text-red-500 hover:text-red-700">
               <FiTrash2 size={16} />
             </button>
           </div>
         </div>
       </li>
-      {/* --- TAMBAHKAN MODAL DI SINI --- */}
       <ConfirmationModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
@@ -77,9 +75,8 @@ function DebtItem({ debt }: { debt: Debt }) {
   );
 }
 
-// --- Komponen Utama DebtCard yang Diperbarui ---
 export default function DebtCard({ debts, totalDebt, periodId }: DebtCardProps) {
-  const formRef = useRef<HTMLFormElement>(null);
+  const [formKey, setFormKey] = useState(Date.now());
 
   return (
     <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 text-black">
@@ -96,12 +93,11 @@ export default function DebtCard({ debts, totalDebt, periodId }: DebtCardProps) 
         )}
       </ul>
 
-      {/* Form Tambah Utang yang Responsif */}
       <form 
-        ref={formRef} 
+        key={formKey}
         action={async (formData) => { 
           await addDebt(formData); 
-          formRef.current?.reset(); 
+          setFormKey(Date.now());
         }} 
         className="flex flex-wrap sm:flex-nowrap gap-2 items-center"
       >
@@ -110,22 +106,22 @@ export default function DebtCard({ debts, totalDebt, periodId }: DebtCardProps) 
           name="description" 
           type="text" 
           placeholder="Keterangan baru..." 
-          className="w-full sm:flex-1 p-2 border rounded-md text-sm focus:ring-2 focus:ring-[#e799ff] focus:border-transparent" 
+          className="w-full sm:flex-1 p-2 border rounded-md text-sm focus:ring-2 focus:ring-[#e799ff] focus-border-transparent" 
           required 
         />
         <div className="w-full sm:w-auto flex gap-2">
           <CurrencyInput
             name="amount"
             placeholder="Jumlah"
-            className="flex-1 sm:w-28 p-2 border rounded-md text-sm focus:ring-2 focus:ring-[#e799ff] focus:border-transparent"
+            className="flex-1 sm:w-28 p-2 border rounded-md text-sm focus:ring-2 focus:ring-[#e799ff] focus-border-transparent"
             required
           />
-          <button 
-            type="submit" 
+          {/* --- 3. Ganti tombol Tambah di form TAMBAH --- */}
+          <SubmitButton 
             className="bg-[#e799ff] text-white px-4 rounded-md font-bold hover:opacity-80 transition-opacity"
           >
             +
-          </button>
+          </SubmitButton>
         </div>
       </form>
     </div>

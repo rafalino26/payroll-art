@@ -21,6 +21,7 @@ model PayrollPeriod {
   adjustmentReason  String?                   // Alasan penyesuaian (opsional)
 
   overtimePay       Int     @default(0)  
+  cashAdvance       Int     @default(0) 
 
   absences  Absence[]
   debts     Debt[]

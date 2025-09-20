@@ -165,6 +165,20 @@ export async function updateDebt(formData: FormData) {
   revalidatePath('/');
 }
 
+export async function updateCashAdvance(formData: FormData) {
+  const id = formData.get('id') as string;
+  const amount = Number(formData.get('cashAdvance') || '0');
+
+  if (!id) return;
+
+  await prisma.payrollPeriod.update({
+    where: { id },
+    data: { cashAdvance: amount },
+  });
+
+  revalidatePath('/');
+}
+
 export async function updateAbsence(formData: FormData) {
   const id = formData.get('id') as string;
   const date = new Date((formData.get('date') as string) + 'T00:00:00.000Z');

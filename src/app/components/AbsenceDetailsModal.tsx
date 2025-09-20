@@ -5,14 +5,14 @@ import { useState } from 'react';
 import { FiInfo, FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi';
 import { updateAbsence, deleteAbsence } from '../action';
 import ClientOnlyDate from './ClientOnlyDate';
-import ConfirmationModal from './ConfirmationModal'
+import ConfirmationModal from './ConfirmationModal';
+import SubmitButton from './SubmitButton'; // <-- 1. Import SubmitButton
 
 type Absence = {
   id: string;
   date: Date;
 };
 
-// Komponen untuk setiap baris absen di dalam modal
 function AbsenceDetailItem({ absence }: { absence: Absence }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
@@ -34,7 +34,11 @@ function AbsenceDetailItem({ absence }: { absence: Absence }) {
         >
           <input type="hidden" name="id" value={absence.id} />
           <input type="date" name="date" defaultValue={formatDateForInput(absence.date)} className="flex-1 w-full p-2 border rounded-md text-sm" required />
-          <button type="submit" className="text-green-600 hover:text-green-800"><FiSave size={20} /></button>
+          
+          {/* --- 2. Ganti tombol Simpan --- */}
+          <SubmitButton className="text-green-600 hover:text-green-800">
+            <FiSave size={20} />
+          </SubmitButton>
           <button type="button" onClick={() => setIsEditing(false)} className="text-gray-500 hover:text-gray-700"><FiXCircle size={20} /></button>
         </form>
       </li>
@@ -47,13 +51,11 @@ function AbsenceDetailItem({ absence }: { absence: Absence }) {
         <ClientOnlyDate date={absence.date} options={{ weekday: 'long', day: 'numeric', month: 'long' }} />
         <div className="flex items-center gap-3">
           <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
-          {/* Tombol hapus sekarang membuka modal */}
           <button onClick={() => setIsConfirmOpen(true)} className="text-red-500 hover:text-red-700">
             <FiTrash2 size={16} />
           </button>
         </div>
       </li>
-      {/* Komponen modal konfirmasi */}
       <ConfirmationModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}

@@ -46,8 +46,7 @@ export default async function HomePage({
     (sum: number, debt: { amount: number }) => sum + debt.amount,
     0
   );
-  const netSalary = totalSalary + data.overtimePay - totalDebt;
-
+  const netSalary = (totalSalary + data.overtimePay) - (totalDebt + data.cashAdvance);
   const calculations = {
     totalWorkDays,
     totalAbsences,

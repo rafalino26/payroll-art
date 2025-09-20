@@ -5,24 +5,41 @@ import { FiAlertCircle } from 'react-icons/fi';
 import EditDailyRateModal from './EditDailyRateModal';
 import EditWorkdayAdjustmentModal from './EditWorkdayAdjustmentModal';
 import EditOvertimeModal from './EditOvertimeModal';
+import EditCashAdvanceModal from './EditCashAdvanceModal';
 
+// Definisikan tipe Props yang lebih lengkap
 type Props = {
   periodId: string;
   totalWorkDays: number;
   totalAbsences: number;
+  totalDaysPresent: number; // Prop untuk total hari masuk
   dailyRate: number;
   debts: { amount: number }[];
   adjustment: number;
   adjustmentReason: string | null;
   overtimePay: number;
+  cashAdvance: number; // Prop untuk uang diambil
   netSalary: number;
 };
 
-export default function SalaryCard({ periodId, totalWorkDays, totalAbsences, dailyRate, debts, adjustment, adjustmentReason, overtimePay, netSalary }: Props) {
+export default function SalaryCard({ 
+  periodId, 
+  totalWorkDays, 
+  totalAbsences,
+  totalDaysPresent,
+  dailyRate, 
+  debts, 
+  adjustment, 
+  adjustmentReason, 
+  overtimePay, 
+  cashAdvance,
+  netSalary 
+}: Props) {
+  // Kalkulasi yang relevan untuk kartu ini
   const adjustedWorkDays = totalWorkDays + adjustment;
   const totalDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
 
-  // Komponen kecil untuk setiap baris agar kode lebih bersih
+  // Komponen kecil untuk setiap baris agar kode tetap bersih
   const InfoRow = ({ label, children }: { label: React.ReactNode, children: React.ReactNode }) => (
     <div className="flex justify-between items-start py-2">
       <span className="text-gray-600">{label}</span>
@@ -52,7 +69,7 @@ export default function SalaryCard({ periodId, totalWorkDays, totalAbsences, dai
               <span className="font-semibold text-gray-800">{adjustedWorkDays} hari</span>
               <p className="text-xs text-gray-500">({formatCurrency(adjustedWorkDays * dailyRate)})</p>
             </div>
-            <EditWorkdayAdjustmentModal periodId={periodId} totalWorkDays={totalWorkDays}  currentAdjustment={adjustment} currentReason={adjustmentReason} />
+            <EditWorkdayAdjustmentModal periodId={periodId} totalWorkDays={totalWorkDays} currentAdjustment={adjustment} currentReason={adjustmentReason} />
           </div>
         </InfoRow>
 
@@ -70,14 +87,24 @@ export default function SalaryCard({ periodId, totalWorkDays, totalAbsences, dai
           </div>
         </InfoRow>
 
-        <InfoRow label="Lembur">
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-green-600">
-            {formatCurrency(overtimePay)}
-          </span>
-          <EditOvertimeModal periodId={periodId} currentOvertime={overtimePay} />
-        </div>
-      </InfoRow>
+        {/* --- BARIS BARU: UANG DIAMBIL --- */}
+        <InfoRow label="Uang Diambil">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-red-500">
+              -{formatCurrency(cashAdvance)}
+            </span>
+            <EditCashAdvanceModal periodId={periodId} currentCashAdvance={cashAdvance} />
+          </div>
+        </InfoRow>
+
+        <InfoRow label="Lembur/Bonus">
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-green-600">
+              +{formatCurrency(overtimePay)}
+            </span>
+            <EditOvertimeModal periodId={periodId} currentOvertime={overtimePay} />
+          </div>
+        </InfoRow>
 
         <hr className="my-1 border-dashed" />
 
@@ -86,6 +113,11 @@ export default function SalaryCard({ periodId, totalWorkDays, totalAbsences, dai
             <span className="font-semibold text-gray-800">{formatCurrency(dailyRate)}</span>
             <EditDailyRateModal periodId={periodId} currentRate={dailyRate} />
           </div>
+        </InfoRow>
+        
+        {/* --- BARIS BARU: TOTAL HARI MASUK --- */}
+        <InfoRow label="Total Hari Masuk">
+          <span className="font-semibold text-gray-800">{totalDaysPresent} hari</span>
         </InfoRow>
         
         <div className="flex justify-between items-center font-bold text-base mt-2 pt-2 border-t">

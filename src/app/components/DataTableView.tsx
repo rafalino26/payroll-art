@@ -2,11 +2,13 @@
 
 import { formatCurrency } from '../lib/utils';
 import DebtDetailsModal from './DebtDetailsModal';
-import AbsenceDetailsModal from './AbsenceDetailsModal'; // <-- Import baru
+import AbsenceDetailsModal from './AbsenceDetailsModal';
 import EditDailyRateModal from './EditDailyRateModal';
 import EditWorkdayAdjustmentModal from './EditWorkdayAdjustmentModal';
 import EditOvertimeModal from './EditOvertimeModal';
+import EditCashAdvanceModal from './EditCashAdvanceModal'; // <-- Import baru
 
+// Tipe data yang diterima dari page.tsx
 type PeriodData = {
   id: string;
   dailyRate: number;
@@ -15,6 +17,7 @@ type PeriodData = {
   debts: { id: string, description: string, amount: number }[];
   absences: { id: string, date: Date }[];
   overtimePay: number;
+  cashAdvance: number; // <-- Tambahkan ini
 };
 type SalaryCalculations = {
   totalWorkDays: number;
@@ -35,9 +38,11 @@ export default function DataTableView({ period, salaryData }: Props) {
           <tr>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rincian</th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Hari Kerja</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Hari Masuk</th> {/* <-- Kolom baru */}
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Absen</th>
             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Total Utang</th>
-             <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Lembur</th>
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Uang Diambil</th> {/* <-- Kolom baru */}
+            <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Lembur</th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gaji Diterima</th>
           </tr>
         </thead>
@@ -63,6 +68,10 @@ export default function DataTableView({ period, salaryData }: Props) {
                 />
               </div>
             </td>
+            {/* --- KOLOM BARU: HARI MASUK --- */}
+            <td className="px-6 py-4 whitespace-nowrap text-center">
+              <span className="font-bold text-blue-600">{salaryData.totalDaysPresent}</span>
+            </td>
             {/* Kolom Absen */}
             <td className="px-6 py-4 whitespace-nowrap text-center">
               <div className="flex items-center justify-center gap-2">
@@ -77,7 +86,15 @@ export default function DataTableView({ period, salaryData }: Props) {
                 {period.debts.length > 0 && <DebtDetailsModal debts={period.debts} />}
               </div>
             </td>
-              <td className="px-6 py-4 whitespace-nowrap text-center">
+            {/* --- KOLOM BARU: UANG DIAMBIL --- */}
+            <td className="px-6 py-4 whitespace-nowrap text-center">
+              <div className="flex items-center justify-center gap-2">
+                <span className="font-bold text-red-600">{formatCurrency(period.cashAdvance)}</span>
+                <EditCashAdvanceModal periodId={period.id} currentCashAdvance={period.cashAdvance} />
+              </div>
+            </td>
+            {/* Kolom Lembur */}
+            <td className="px-6 py-4 whitespace-nowrap text-center">
               <div className="flex items-center justify-center gap-2">
                 <span className="font-bold text-green-600">{formatCurrency(period.overtimePay)}</span>
                 <EditOvertimeModal periodId={period.id} currentOvertime={period.overtimePay} />

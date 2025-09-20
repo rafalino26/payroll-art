@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { updateDailyRate } from '../action';
 import CurrencyInput from './CurrencyInput';
 import { FiEdit } from 'react-icons/fi';
+import SubmitButton from './SubmitButton'; // <-- 1. Import SubmitButton
 
 export default function EditDailyRateModal({ periodId, currentRate }: { periodId: string, currentRate: number }) {
   const [isOpen, setIsOpen] = useState(false);
+  
   return (
     <>
       <button onClick={() => setIsOpen(true)} className="text-gray-400 hover:text-blue-600"><FiEdit size={14} /></button>
@@ -22,7 +24,11 @@ export default function EditDailyRateModal({ periodId, currentRate }: { periodId
               </div>
               <div className="flex gap-4 pt-2">
                 <button type="button" onClick={() => setIsOpen(false)} className="w-full py-2 border rounded-lg text-sm">Batal</button>
-                <button type="submit" className="w-full py-2 bg-purple-500 text-white rounded-lg text-sm font-semibold">Simpan</button>
+                
+                {/* --- 2. Ganti <button> dengan <SubmitButton> --- */}
+                <SubmitButton className="w-full py-2 bg-purple-500 text-white rounded-lg text-sm font-semibold">
+                  Simpan
+                </SubmitButton>
               </div>
             </form>
           </div>

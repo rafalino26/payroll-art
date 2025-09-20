@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import { updatePeriod } from '../action';
 import { FiEdit } from 'react-icons/fi';
+import SubmitButton from './SubmitButton'; // <-- 1. Import SubmitButton
 
 // Tipe data untuk periode yang akan di-edit
 type PeriodData = {
@@ -87,12 +88,13 @@ export default function EditPeriodModal({ period }: { period: PeriodData }) {
                 >
                   Batal
                 </button>
-                <button
-                  type="submit"
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-[#e799ff] "
+                
+                {/* --- 2. Ganti <button> dengan <SubmitButton> --- */}
+                <SubmitButton
+                  className="w-full py-3 px-4 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-[#e799ff]"
                 >
                   Simpan Perubahan
-                </button>
+                </SubmitButton>
               </div>
             </form>
           </div>

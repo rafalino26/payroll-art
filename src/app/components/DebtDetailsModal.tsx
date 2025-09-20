@@ -3,10 +3,11 @@
 
 import { useState } from 'react';
 import { FiInfo, FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency } from '@/app/lib/utils';
 import { updateDebt, deleteDebt } from '../action';
 import CurrencyInput from './CurrencyInput';
 import ConfirmationModal from './ConfirmationModal';
+import SubmitButton from './SubmitButton'; // <-- 1. Import SubmitButton
 
 type Debt = {
   id: string;
@@ -14,13 +15,11 @@ type Debt = {
   amount: number;
 };
 
-// --- Komponen untuk Setiap Baris Utang di Modal ---
 function DebtDetailItem({ debt }: { debt: Debt }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   if (isEditing) {
-    // Tampilan mode EDIT (tidak ada perubahan)
     return (
       <li className="border-b pb-2">
         <form
@@ -45,7 +44,10 @@ function DebtDetailItem({ debt }: { debt: Debt }) {
               className="flex-1 w-full p-2 border rounded-md text-sm"
               required
             />
-            <button type="submit" className="text-green-600 hover:text-green-800"><FiSave size={20} /></button>
+            {/* --- 2. Ganti tombol Simpan --- */}
+            <SubmitButton className="text-green-600 hover:text-green-800">
+              <FiSave size={20} />
+            </SubmitButton>
             <button type="button" onClick={() => setIsEditing(false)} className="text-gray-500 hover:text-gray-700"><FiXCircle size={20} /></button>
           </div>
         </form>
@@ -53,8 +55,6 @@ function DebtDetailItem({ debt }: { debt: Debt }) {
     );
   }
 
-  // --- PERUBAHAN DI SINI ---
-  // Tampilan Normal (Tombol selalu terlihat)
   return (
     <>
       <li className="flex justify-between items-center text-sm border-b py-2">
@@ -65,14 +65,12 @@ function DebtDetailItem({ debt }: { debt: Debt }) {
           <span className="font-medium text-red-600 whitespace-nowrap">{formatCurrency(debt.amount)}</span>
           <div className="flex items-center gap-3">
             <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
-            {/* --- UBAH ONCLICK DI SINI --- */}
             <button onClick={() => setIsConfirmOpen(true)} className="text-red-500 hover:text-red-700">
               <FiTrash2 size={16} />
             </button>
           </div>
         </div>
       </li>
-      {/* --- TAMBAHKAN MODAL DI SINI --- */}
       <ConfirmationModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}

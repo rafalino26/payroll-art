@@ -5,8 +5,9 @@
 import { useRef, useState } from 'react';
 import { addAbsence, updateAbsence, deleteAbsence } from '../action';
 import ClientOnlyDate from './ClientOnlyDate';
-import { FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi'; // Import ikon
+import { FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi';
 import ConfirmationModal from './ConfirmationModal';
+import SubmitButton from './SubmitButton'; // <-- 1. Import SubmitButton
 
 type Absence = {
   id: string;
@@ -18,12 +19,10 @@ type AbsenceCardProps = {
   periodId: string;
 };
 
-// --- Komponen Baru: Baris Absen Interaktif ---
 function AbsenceItem({ absence }: { absence: Absence }) {
   const [isEditing, setIsEditing] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
-  // Fungsi untuk format tanggal YYYY-MM-DD untuk input type="date"
   const formatDateForInput = (date: Date) => {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -32,7 +31,6 @@ function AbsenceItem({ absence }: { absence: Absence }) {
     return `${year}-${month}-${day}`;
   };
 
-  // Tampilan saat mode EDIT
   if (isEditing) {
     return (
       <form
@@ -46,32 +44,32 @@ function AbsenceItem({ absence }: { absence: Absence }) {
         <input
           type="date"
           name="date"
-          defaultValue={formatDateForInput(absence.date)} // <-- Nilai awal untuk input tanggal
+          defaultValue={formatDateForInput(absence.date)}
           className="flex-1 p-2 border rounded-md text-sm"
           required
         />
         <div className="flex items-center gap-2">
-          <button type="submit" className="text-green-600 hover:text-green-800"><FiSave size={20} /></button>
+          {/* --- 2. Ganti tombol Simpan di form EDIT --- */}
+          <SubmitButton className="text-green-600 hover:text-green-800">
+            <FiSave size={20} />
+          </SubmitButton>
           <button type="button" onClick={() => setIsEditing(false)} className="text-gray-500 hover:text-gray-700"><FiXCircle size={20} /></button>
         </div>
       </form>
     );
   }
 
-  // Tampilan Normal
   return (
-   <>
+    <>
       <li className="flex justify-between items-center text-sm text-gray-700 p-2 rounded transition-colors hover:bg-gray-100">
         <ClientOnlyDate date={absence.date} options={{ weekday: 'long', day: 'numeric', month: 'long' }} />
         <div className="flex items-center gap-3">
           <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
-          {/* --- UBAH ONCLICK DI SINI --- */}
           <button onClick={() => setIsConfirmOpen(true)} className="text-red-500 hover:text-red-700">
             <FiTrash2 size={16} />
           </button>
         </div>
       </li>
-      {/* --- TAMBAHKAN MODAL DI SINI --- */}
       <ConfirmationModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
@@ -83,7 +81,6 @@ function AbsenceItem({ absence }: { absence: Absence }) {
   );
 }
 
-// --- Komponen Utama AbsenceCard yang Diperbarui ---
 export default function AbsenceCard({ absences, periodId }: AbsenceCardProps) {
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -98,7 +95,6 @@ export default function AbsenceCard({ absences, periodId }: AbsenceCardProps) {
         )}
       </ul>
       
-      {/* Form Tambah Absen yang Responsif */}
       <form
         ref={formRef}
         action={async (formData) => {
@@ -114,12 +110,12 @@ export default function AbsenceCard({ absences, periodId }: AbsenceCardProps) {
           className="flex-1 p-2 border rounded-md text-sm focus:ring-2 focus:ring-[#e799ff] focus:border-transparent"
           required
         />
-        <button
-          type="submit"
+        {/* --- 3. Ganti tombol Tambah di form TAMBAH --- */}
+        <SubmitButton
           className="bg-[#e799ff] text-white px-4 rounded-md font-bold hover:opacity-80 transition-opacity"
         >
           +
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );
