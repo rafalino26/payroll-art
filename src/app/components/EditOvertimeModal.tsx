@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { updateOvertimePay } from '../action';
 import CurrencyInput from './CurrencyInput';
 import { FiEdit, FiPlus } from 'react-icons/fi';
+import ConfirmationModal from './ConfirmationModal';
 
 type Props = { 
   periodId: string;
@@ -12,6 +13,15 @@ type Props = {
 
 export default function EditOvertimeModal({ periodId, currentOvertime }: Props) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+   const handleConfirmDelete = async () => {
+    const formData = new FormData();
+    formData.append('id', periodId);
+    formData.append('overtimePay', '0');
+    await updateOvertimePay(formData);
+    setIsOpen(false); // Tutup modal edit utama juga
+  };
   
   // Tombol pemicu: tampilkan ikon '+' jika kosong, ikon 'edit' jika ada isi
   const TriggerButton = currentOvertime > 0 
@@ -37,11 +47,10 @@ export default function EditOvertimeModal({ periodId, currentOvertime }: Props) 
               <div className="flex gap-4 pt-2">
                 <button type="button" onClick={() => setIsOpen(false)} className="w-full py-2 border rounded-lg text-sm">Batal</button>
                 {/* Tombol hapus hanya muncul jika ada lembur */}
-                {currentOvertime > 0 && 
+               {currentOvertime > 0 && 
                   <button 
-                    type="submit" 
-                    name="overtimePay" 
-                    value="0"
+                    type="button" // <-- Ubah dari 'submit' ke 'button'
+                    onClick={() => setIsConfirmOpen(true)}
                     className="w-full py-2 bg-red-500 text-white rounded-lg text-sm font-semibold"
                   >
                     Hapus
@@ -53,6 +62,14 @@ export default function EditOvertimeModal({ periodId, currentOvertime }: Props) 
           </div>
         </div>
       )}
+      {/* Komponen modal konfirmasi untuk hapus lembur */}
+      <ConfirmationModal 
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Uang Lembur"
+        message="Anda yakin ingin menghapus (mengatur ke nol) semua uang lembur untuk periode ini?"
+      />
     </>
   );
 }

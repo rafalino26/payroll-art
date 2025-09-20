@@ -6,6 +6,7 @@ import { useRef, useState } from 'react';
 import { addAbsence, updateAbsence, deleteAbsence } from '../action';
 import ClientOnlyDate from './ClientOnlyDate';
 import { FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi'; // Import ikon
+import ConfirmationModal from './ConfirmationModal';
 
 type Absence = {
   id: string;
@@ -20,6 +21,7 @@ type AbsenceCardProps = {
 // --- Komponen Baru: Baris Absen Interaktif ---
 function AbsenceItem({ absence }: { absence: Absence }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
 
   // Fungsi untuk format tanggal YYYY-MM-DD untuk input type="date"
   const formatDateForInput = (date: Date) => {
@@ -58,25 +60,26 @@ function AbsenceItem({ absence }: { absence: Absence }) {
 
   // Tampilan Normal
   return (
-    <li className="flex justify-between items-center text-sm text-gray-700 p-2 rounded transition-colors hover:bg-gray-100">
-      <ClientOnlyDate
-        date={absence.date}
-        options={{ weekday: 'long', day: 'numeric', month: 'long' }}
+   <>
+      <li className="flex justify-between items-center text-sm text-gray-700 p-2 rounded transition-colors hover:bg-gray-100">
+        <ClientOnlyDate date={absence.date} options={{ weekday: 'long', day: 'numeric', month: 'long' }} />
+        <div className="flex items-center gap-3">
+          <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
+          {/* --- UBAH ONCLICK DI SINI --- */}
+          <button onClick={() => setIsConfirmOpen(true)} className="text-red-500 hover:text-red-700">
+            <FiTrash2 size={16} />
+          </button>
+        </div>
+      </li>
+      {/* --- TAMBAHKAN MODAL DI SINI --- */}
+      <ConfirmationModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={() => deleteAbsence(absence.id)}
+        title="Hapus Absen"
+        message="Anda yakin ingin menghapus tanggal absen ini?"
       />
-      <div className="flex items-center gap-3">
-        <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
-        <button
-          onClick={() => {
-            if (confirm('Yakin ingin menghapus tanggal absen ini?')) {
-              deleteAbsence(absence.id);
-            }
-          }}
-          className="text-red-500 hover:text-red-700"
-        >
-          <FiTrash2 size={16} />
-        </button>
-      </div>
-    </li>
+    </>
   );
 }
 

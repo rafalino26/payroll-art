@@ -6,6 +6,7 @@ import { addDebt, updateDebt, deleteDebt } from '../action';
 import { formatCurrency } from '../lib/utils';
 import CurrencyInput from './CurrencyInput';
 import { FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi'; // Import ikon
+import ConfirmationModal from './ConfirmationModal'; 
 
 // Tipe data tidak berubah
 type Debt = { id: string; description: string; amount: number; };
@@ -14,6 +15,7 @@ type DebtCardProps = { debts: Debt[]; totalDebt: number; periodId: string; };
 // --- Komponen Baris Utang yang Diperbarui ---
 function DebtItem({ debt }: { debt: Debt }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
 
   // Tampilan saat mode EDIT
   if (isEditing) {
@@ -49,25 +51,29 @@ function DebtItem({ debt }: { debt: Debt }) {
 
   // Tampilan Normal
   return (
-    <li className="flex justify-between items-center text-sm text-gray-700 p-2 rounded transition-colors hover:bg-gray-100">
-      <span className="flex-1 truncate pr-4">{debt.description}</span>
-      <div className="flex items-center gap-4">
-        <span className="font-medium w-20 text-right">{formatCurrency(debt.amount)}</span>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
-          <button
-            onClick={() => {
-              if (confirm('Yakin ingin menghapus utang ini?')) {
-                deleteDebt(debt.id);
-              }
-            }}
-            className="text-red-500 hover:text-red-700"
-          >
-            <FiTrash2 size={16} />
-          </button>
+     <>
+      <li className="flex justify-between items-center text-sm text-gray-700 p-2 rounded transition-colors hover:bg-gray-100">
+        <span className="flex-1 truncate pr-4">{debt.description}</span>
+        <div className="flex items-center gap-4">
+          <span className="font-medium w-20 text-right">{formatCurrency(debt.amount)}</span>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
+            {/* --- UBAH ONCLICK DI SINI --- */}
+            <button onClick={() => setIsConfirmOpen(true)} className="text-red-500 hover:text-red-700">
+              <FiTrash2 size={16} />
+            </button>
+          </div>
         </div>
-      </div>
-    </li>
+      </li>
+      {/* --- TAMBAHKAN MODAL DI SINI --- */}
+      <ConfirmationModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={() => deleteDebt(debt.id)}
+        title="Hapus Utang"
+        message={`Anda yakin ingin menghapus utang "${debt.description}"?`}
+      />
+    </>
   );
 }
 

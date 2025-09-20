@@ -1,8 +1,10 @@
 // file: app/components/DeletePeriodButton.tsx
 "use client";
 
+import { useState } from 'react'; 
 import { deletePeriod } from '../action';
 import { FiTrash2 } from 'react-icons/fi';
+import ConfirmationModal from './ConfirmationModal';
 
 type Props = {
   periodId: string;
@@ -10,23 +12,31 @@ type Props = {
 };
 
 export default function DeletePeriodButton({ periodId, periodName }: Props) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const handleDelete = () => {
-    // 1. Tampilkan konfirmasi di sisi client (browser)
-    const isConfirmed = confirm(`Yakin ingin menghapus periode "${periodName}"? Semua data utang dan absen di dalamnya juga akan terhapus.`);
-    
-    // 2. Jika pengguna menekan "OK", baru panggil Server Action
-    if (isConfirmed) {
-      deletePeriod(periodId);
-    }
+  const handleConfirmDelete = () => {
+    // Panggil server action untuk menghapus
+    deletePeriod(periodId);
   };
 
   return (
-    <button
-      onClick={handleDelete}
-      className="text-gray-500 hover:text-red-600 transition-colors"
-    >
-      <FiTrash2 size={16} />
-    </button>
+    <>
+      {/* Tombol ini sekarang hanya membuka modal */}
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="text-gray-500 hover:text-red-600 transition-colors"
+      >
+        <FiTrash2 size={16} />
+      </button>
+
+      {/* Komponen Modal Konfirmasi */}
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Hapus Periode"
+        message={`Anda yakin ingin menghapus periode "${periodName}"? Semua data utang dan absen di dalamnya akan ikut terhapus secara permanen.`}
+      />
+    </>
   );
 }

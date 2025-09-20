@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { FiInfo, FiEdit, FiTrash2, FiSave, FiXCircle } from 'react-icons/fi';
 import { updateAbsence, deleteAbsence } from '../action';
 import ClientOnlyDate from './ClientOnlyDate';
+import ConfirmationModal from './ConfirmationModal'
 
 type Absence = {
   id: string;
@@ -14,6 +15,7 @@ type Absence = {
 // Komponen untuk setiap baris absen di dalam modal
 function AbsenceDetailItem({ absence }: { absence: Absence }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false); 
 
   const formatDateForInput = (date: Date) => {
     const d = new Date(date);
@@ -40,15 +42,26 @@ function AbsenceDetailItem({ absence }: { absence: Absence }) {
   }
 
   return (
-    <li className="flex justify-between items-center text-sm text-black border-b py-2">
-      <ClientOnlyDate date={absence.date} options={{ weekday: 'long', day: 'numeric', month: 'long' }} />
-      <div className="flex items-center gap-3">
-        <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
-        <button onClick={() => { if (confirm('Yakin hapus?')) { deleteAbsence(absence.id); }}} className="text-red-500 hover:text-red-700">
-          <FiTrash2 size={16} />
-        </button>
-      </div>
-    </li>
+    <>
+      <li className="flex justify-between items-center text-sm text-black border-b py-2">
+        <ClientOnlyDate date={absence.date} options={{ weekday: 'long', day: 'numeric', month: 'long' }} />
+        <div className="flex items-center gap-3">
+          <button onClick={() => setIsEditing(true)} className="text-blue-500 hover:text-blue-700"><FiEdit size={16} /></button>
+          {/* Tombol hapus sekarang membuka modal */}
+          <button onClick={() => setIsConfirmOpen(true)} className="text-red-500 hover:text-red-700">
+            <FiTrash2 size={16} />
+          </button>
+        </div>
+      </li>
+      {/* Komponen modal konfirmasi */}
+      <ConfirmationModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={() => deleteAbsence(absence.id)}
+        title="Hapus Absen"
+        message="Anda yakin ingin menghapus tanggal absen ini?"
+      />
+    </>
   );
 }
 
