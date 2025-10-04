@@ -1,11 +1,13 @@
 // file: app/components/SalaryCard.tsx
 
 import { formatCurrency } from '@/app/lib/utils';
-import { FiAlertCircle } from 'react-icons/fi';
+import { FiAlertCircle, FiInfo } from 'react-icons/fi';
 import EditDailyRateModal from './EditDailyRateModal';
 import EditWorkdayAdjustmentModal from './EditWorkdayAdjustmentModal';
-import EditOvertimeModal from './EditOvertimeModal';
+import OvertimeDetailsModal from './OvertimeDetailsModal'; // <-- Import modal baru
+import BonusDetailsModal from './BonusDetailsModal';
 import EditCashAdvanceModal from './EditCashAdvanceModal';
+
 
 // Definisikan tipe Props yang lebih lengkap
 type Props = {
@@ -17,27 +19,21 @@ type Props = {
   debts: { amount: number }[];
   adjustment: number;
   adjustmentReason: string | null;
-  overtimePay: number;
+  overtimes: { id: string; date: Date; description: string; days: number; amount: number; }[];
+  bonuses: { id: string; date: Date; description: string; amount: number; }[];
   cashAdvance: number; // Prop untuk uang diambil
   netSalary: number;
 };
 
 export default function SalaryCard({ 
-  periodId, 
-  totalWorkDays, 
-  totalAbsences,
-  totalDaysPresent,
-  dailyRate, 
-  debts, 
-  adjustment, 
-  adjustmentReason, 
-  overtimePay, 
-  cashAdvance,
-  netSalary 
+  periodId, totalWorkDays, totalAbsences, totalDaysPresent, dailyRate, debts, 
+  adjustment, adjustmentReason, cashAdvance, netSalary, overtimes, bonuses 
 }: Props) {
-  // Kalkulasi yang relevan untuk kartu ini
-  const adjustedWorkDays = totalWorkDays + adjustment;
+  // Kalkulasi baru untuk total lembur dan bonus
   const totalDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
+  const totalOvertime = overtimes.reduce((sum, ot) => sum + ot.amount, 0); 
+  const totalBonus = bonuses.reduce((sum, b) => sum + b.amount, 0);
+  const adjustedWorkDays = totalWorkDays + adjustment;
 
   // Komponen kecil untuk setiap baris agar kode tetap bersih
   const InfoRow = ({ label, children }: { label: React.ReactNode, children: React.ReactNode }) => (
@@ -97,12 +93,21 @@ export default function SalaryCard({
           </div>
         </InfoRow>
 
-        <InfoRow label="Lembur/Bonus">
-          <div className="flex items-center gap-2">
+        <InfoRow label="Lembur">
+          <div className="flex items-center gap-2 justify-end">
             <span className="font-semibold text-green-600">
-              +{formatCurrency(overtimePay)}
+              +{formatCurrency(totalOvertime)}
             </span>
-            <EditOvertimeModal periodId={periodId} currentOvertime={overtimePay} />
+            {overtimes.length > 0 && <OvertimeDetailsModal overtimes={overtimes} />}
+          </div>
+        </InfoRow>
+
+        <InfoRow label="Bonus">
+          <div className="flex items-center gap-2 justify-end">
+            <span className="font-semibold text-green-600">
+              +{formatCurrency(totalBonus)}
+            </span>
+            {bonuses.length > 0 && <BonusDetailsModal bonuses={bonuses} />}
           </div>
         </InfoRow>
 

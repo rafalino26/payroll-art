@@ -9,7 +9,12 @@ import { redirect } from 'next/navigation';
 export async function getLatestPayrollData() {
   return await prisma.payrollPeriod.findFirst({
     orderBy: { createdAt: 'desc' },
-    include: { absences: true, debts: true },
+    include: { 
+      absences: true, 
+      debts: true,
+      overtimes: true, // <-- Tambahkan ini
+      bonuses: true    // <-- Tambahkan ini
+    },
   });
 }
 
@@ -17,7 +22,12 @@ export async function getLatestPayrollData() {
 export async function getPeriodById(id: string) {
   return await prisma.payrollPeriod.findUnique({
     where: { id },
-    include: { absences: true, debts: true },
+    include: { 
+      absences: true, 
+      debts: true,
+      overtimes: true, // <-- Tambahkan ini
+      bonuses: true    // <-- Tambahkan ini
+    },
   });
 }
 
@@ -75,21 +85,46 @@ export async function updateWorkdayAdjustment(formData: FormData) {
   revalidatePath('/');
 }
 
-// --- FUNGSI BARU UNTUK UPDATE UANG LEMBUR ---
-export async function updateOvertimePay(formData: FormData) {
-  const id = formData.get('id') as string;
-  // Jika input kosong atau tidak ada, anggap 0
-  const amount = Number(formData.get('overtimePay') || '0');
+// --- FUNGSI BARU UNTUK LEMBUR ---
+export async function addOvertime(formData: FormData) {
+  const periodId = formData.get('id') as string;
+  const date = new Date((formData.get('date') as string) + 'T00:00:00.000Z');
+  const description = formData.get('description') as string;
+  const days = Number(formData.get('days'));
+  const amount = Number(formData.get('amount'));
 
-  if (!id) return;
+  const period = await prisma.payrollPeriod.findUnique({ where: { id: periodId } });
+  if (!period) return;
 
-  await prisma.payrollPeriod.update({
-    where: { id },
-    data: { overtimePay: amount },
+  const calculatedAmount = days * period.dailyRate;
+
+  await prisma.overtime.create({
+    data: { payrollPeriodId: periodId, date, description, days, amount },
   });
-
   revalidatePath('/');
 }
+export async function deleteOvertime(id: string) {
+  await prisma.overtime.delete({ where: { id } });
+  revalidatePath('/');
+}
+
+// --- FUNGSI BARU UNTUK BONUS ---
+export async function addBonus(formData: FormData) {
+  const periodId = formData.get('id') as string;
+  const date = new Date((formData.get('date') as string) + 'T00:00:00.000Z');
+  const description = formData.get('description') as string;
+  const amount = Number(formData.get('amount'));
+
+  await prisma.bonus.create({
+    data: { payrollPeriodId: periodId, date, description, amount },
+  });
+  revalidatePath('/');
+}
+export async function deleteBonus(id: string) {
+  await prisma.bonus.delete({ where: { id } });
+  revalidatePath('/');
+}
+
 
 // Menambah utang baru
   export async function addDebt(formData: FormData) {

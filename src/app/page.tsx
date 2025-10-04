@@ -37,16 +37,19 @@ export default async function HomePage({
     );
   }
 
+   // --- KALKULASI UTAMA (UPDATE) ---
   const totalWorkDays = calculateWorkDays(data.startDate, data.endDate);
   const totalAbsences = data.absences.length;
   const adjustedWorkDays = totalWorkDays + data.workdayAdjustment;
   const totalDaysPresent = adjustedWorkDays - totalAbsences;
   const totalSalary = totalDaysPresent * data.dailyRate;
-  const totalDebt = data.debts.reduce(
-    (sum: number, debt: { amount: number }) => sum + debt.amount,
-    0
-  );
-  const netSalary = (totalSalary + data.overtimePay) - (totalDebt + data.cashAdvance);
+  const totalDebt = data.debts.reduce((sum: number, debt: { amount: number }) => sum + debt.amount, 0);
+  
+  // Kalkulasi baru untuk total lembur dan bonus
+    const totalOvertime = data.overtimes.reduce((sum: number, ot: { amount: number }) => sum + ot.amount, 0);
+  const totalBonus = data.bonuses.reduce((sum: number, b: { amount: number }) => sum + b.amount, 0);
+
+  const netSalary = (totalSalary + totalOvertime + totalBonus) - (totalDebt + data.cashAdvance);
   const calculations = {
     totalWorkDays,
     totalAbsences,
@@ -54,6 +57,8 @@ export default async function HomePage({
     totalDaysPresent,
     totalSalary,
     totalDebt,
+    totalOvertime, 
+    totalBonus,
     netSalary,
   };
 

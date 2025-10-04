@@ -9,8 +9,9 @@ import DataTableView from './DataTableView';
 import AddDebtModal from './AddDebtModal';
 import AddAbsenceModal from './AddAbsenceModal';
 import Header from './Header';
+import AddOvertimeModal from './AddOvertimeModal';
+import AddBonusModal from './AddBonusModal';
 
-// --- DEFINISIKAN TIPE DATA UNTUK PROPS DI SINI ---
 type PeriodData = {
   id: string;
   name: string;
@@ -19,7 +20,9 @@ type PeriodData = {
   dailyRate: number;
   workdayAdjustment: number;
   adjustmentReason: string | null;
-  overtimePay: number;
+  // --- UBAH TIPE DATA DI SINI ---
+  overtimes: { id: string; date: Date; description: string; days: number; amount: number; }[];
+  bonuses: { id: string; date: Date; description: string; amount: number; }[];
   cashAdvance: number;
   debts: { id: string; description: string; amount: number; }[];
   absences: { id: string; date: Date; }[];
@@ -38,6 +41,8 @@ type Calculations = {
   totalSalary: number;
   totalDebt: number;
   netSalary: number;
+  totalOvertime: number;
+  totalBonus: number; 
 };
 
 type PayrollDashboardProps = {
@@ -46,9 +51,8 @@ type PayrollDashboardProps = {
   calculations: Calculations;
 };
 
-// --- GUNAKAN TIPE DATA YANG BARU DI SINI ---
 export default function PayrollDashboard({ data, allPeriods, calculations }: PayrollDashboardProps) {
-  const { totalWorkDays, totalAbsences, adjustedWorkDays, totalDaysPresent, totalSalary, totalDebt, netSalary } = calculations;
+  const { totalWorkDays, totalAbsences, adjustedWorkDays, totalDaysPresent, totalSalary, totalDebt, totalOvertime, totalBonus, netSalary } = calculations;
 
   return (
     <main className="bg-white min-h-screen">
@@ -63,25 +67,28 @@ export default function PayrollDashboard({ data, allPeriods, calculations }: Pay
           <div className="flex justify-center gap-3">
             <AddDebtModal periodId={data.id} />
             <AddAbsenceModal periodId={data.id} />
+            <AddOvertimeModal periodId={data.id} />
+            <AddBonusModal periodId={data.id} />
           </div>
 
           <SummaryCard netSalary={netSalary} />
           <TabManager
-        strukView={
-          <div className="space-y-4">
-            <SalaryCard
-              periodId={data.id}
-              totalWorkDays={totalWorkDays}
-              totalAbsences={totalAbsences}
-              totalDaysPresent={totalDaysPresent} // <-- Teruskan ini
-              dailyRate={data.dailyRate}
-              debts={data.debts}
-              adjustment={data.workdayAdjustment}
-              adjustmentReason={data.adjustmentReason}
-              overtimePay={data.overtimePay}
-              cashAdvance={data.cashAdvance}       // <-- Teruskan ini
-              netSalary={netSalary}
-            />
+            strukView={
+              <div className="space-y-4">
+                <SalaryCard
+                  periodId={data.id}
+                  totalWorkDays={totalWorkDays}
+                  totalAbsences={totalAbsences}
+                  totalDaysPresent={totalDaysPresent}
+                  dailyRate={data.dailyRate}
+                  debts={data.debts}
+                  adjustment={data.workdayAdjustment}
+                  adjustmentReason={data.adjustmentReason}
+                  overtimes={data.overtimes}
+                  bonuses={data.bonuses} 
+                  cashAdvance={data.cashAdvance}
+                  netSalary={netSalary}
+                />
                 <DebtCard debts={data.debts} totalDebt={totalDebt} periodId={data.id} />
                 <AbsenceCard absences={data.absences} periodId={data.id} />
               </div>
@@ -96,6 +103,8 @@ export default function PayrollDashboard({ data, allPeriods, calculations }: Pay
                   totalDaysPresent,
                   totalSalary,
                   totalDebt,
+                  totalOvertime,
+                  totalBonus, 
                   netSalary
                 }}
               />

@@ -25,6 +25,8 @@ model PayrollPeriod {
 
   absences  Absence[]
   debts     Debt[]
+  overtimes Overtime[] 
+  bonuses   Bonus[] 
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -48,4 +50,27 @@ model Absence {
   
   payrollPeriodId String
   payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id])
+}
+
+model Overtime {
+  id               String   @id @default(cuid())
+  date             DateTime
+  description      String
+  days             Float    // Ubah ke Float untuk hari pecahan (opsional)
+  
+  // --- UBAH BAGIAN INI ---
+  amount           Int      // Ganti 'calculatedAmount' menjadi 'amount'
+
+  payrollPeriodId String
+  payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id], onDelete: Cascade)
+}
+
+model Bonus {
+  id          String   @id @default(cuid())
+  date        DateTime
+  description String
+  amount      Int      // Jumlah bonus (nilai langsung)
+
+  payrollPeriodId String
+  payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id], onDelete: Cascade)
 }
