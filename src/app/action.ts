@@ -126,20 +126,34 @@ export async function deleteBonus(id: string) {
 }
 
 
-// Menambah utang baru
-  export async function addDebt(formData: FormData) {
-    const periodId = formData.get('periodId') as string;
-    const description = formData.get('description') as string;
-    // Pastikan konversi ke Number sudah benar
-    const amount = Number(formData.get('amount')); 
+// helper kecil untuk aman dari "TZ off-by-one"
+function parseDateOnly(dateStr?: string | null): Date | undefined {
+  if (!dateStr) return undefined;
+  // Buat tanggal di tengah hari UTC agar tidak loncat hari oleh TZ
+  const d = new Date(`${dateStr}T12:00:00.000Z`);
+  return isNaN(d.getTime()) ? undefined : d;
+}
 
-    if (!periodId || !description || !amount) return;
+// --- Menambah utang baru ---
+export async function addDebt(formData: FormData) {
+  const periodId = formData.get('periodId') as string;
+  const description = formData.get('description') as string;
+  const amount = Number(formData.get('amount'));
+  const dateFromForm = parseDateOnly(formData.get('date') as string | null); // <- baru
 
-    await prisma.debt.create({
-      data: { payrollPeriodId: periodId, description, amount },
-    });
-    revalidatePath('/');
-  }
+  if (!periodId || !description || !Number.isFinite(amount)) return;
+
+  await prisma.debt.create({
+    data: {
+      payrollPeriodId: periodId,
+      description,
+      amount,
+      ...(dateFromForm ? { date: dateFromForm } : {}), // kalau kosong, pakai default(now())
+    },
+  });
+  revalidatePath('/');
+}
+
 
 // Menambah absen baru
 export async function addAbsence(formData: FormData) {
@@ -188,14 +202,18 @@ export async function deletePeriod(periodId: string) {
 export async function updateDebt(formData: FormData) {
   const id = formData.get('id') as string;
   const description = formData.get('description') as string;
-  // Pastikan konversi ke Number sudah benar
   const amount = Number(formData.get('amount'));
-  
-  if (!id || !description || !amount) return;
+  const dateFromForm = parseDateOnly(formData.get('date') as string | null); // <- baru
+
+  if (!id || !description || !Number.isFinite(amount)) return;
 
   await prisma.debt.update({
     where: { id },
-    data: { description, amount },
+    data: {
+      description,
+      amount,
+      ...(dateFromForm ? { date: dateFromForm } : {}), // boleh tidak diubah
+    },
   });
   revalidatePath('/');
 }

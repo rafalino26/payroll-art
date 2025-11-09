@@ -18,3 +18,13 @@ export const formatCurrency = (amount: number) => {
     minimumFractionDigits: 0,
   }).format(amount);
 };
+
+export function formatDateDMY2(d: Date | string) {
+  const dt = typeof d === 'string' ? new Date(d) : d;
+  if (isNaN(dt.getTime())) return '-';
+  const day = dt.getDate();              // 1..31 (tanpa leading zero)
+  const month = dt.getMonth() + 1;       // 1..12 (tanpa leading zero)
+  const yy = String(dt.getFullYear()).slice(-2).padStart(2, '0'); // 2 digit
+  return `${day}/${month}/${yy}`;
+}
+
