@@ -6,28 +6,30 @@ import { LedgerType } from "@prisma/client";
 
 export async function GET() {
   try {
-    // 1. Jumlahkan SEMUA catatan berjenis DEBT_ADD (Utang) di seluruh database
-    const allDebts = await prisma.ledgerEntry.aggregate({
+    // 1. Ambil SEMUA rincian catatan UTANG (DEBT_ADD) dari awal sampai akhir, urutkan dari yang terbaru
+    const globalDebtEntries = await prisma.ledgerEntry.findMany({
       where: { type: LedgerType.DEBT_ADD },
-      _sum: { amount: true },
+      orderBy: { date: 'desc' },
     });
 
-    // 2. Jumlahkan SEMUA catatan berjenis DEBT_PAYMENT (Cicilan) di seluruh database
-    const allPayments = await prisma.ledgerEntry.aggregate({
+    // 2. Ambil SEMUA rincian catatan CICILAN (DEBT_PAYMENT)
+    const globalPaymentEntries = await prisma.ledgerEntry.findMany({
       where: { type: LedgerType.DEBT_PAYMENT },
-      _sum: { amount: true },
+      orderBy: { date: 'desc' },
     });
 
-    const totalDebt = allDebts._sum.amount ?? 0;
-    const totalPaid = allPayments._sum.amount ?? 0;
-    
-    // 3. Kurangi untuk mendapatkan sisa hutang asli saat ini
+    // 3. Hitung Totalnya
+    const totalDebt = globalDebtEntries.reduce((sum, entry) => sum + entry.amount, 0);
+    const totalPaid = globalPaymentEntries.reduce((sum, entry) => sum + entry.amount, 0);
     const remainingGlobalDebt = totalDebt - totalPaid;
 
     return NextResponse.json({
       totalDebt,
       totalPaid,
       remainingGlobalDebt,
+      // Kita kirimkan rincian datanya ke Flutter
+      globalDebtEntries,
+      globalPaymentEntries,
     });
   } catch (error) {
     console.error("Error calculating global debt:", error);
