@@ -14,63 +14,97 @@ model PayrollPeriod {
   name      String
   startDate DateTime
   endDate   DateTime
-  
-  // --- UBAH & TAMBAHKAN BARIS INI ---
-  dailyRate         Int     @default(75000) // Gaji per hari untuk periode ini
-  workdayAdjustment Int     @default(0)       // Penyesuaian hari kerja (+/-)
-  adjustmentReason  String?                   // Alasan penyesuaian (opsional)
 
-  overtimePay       Int     @default(0)  
-  cashAdvance       Int     @default(0) 
+  // Gaji & penyesuaian
+  dailyRate         Int     @default(75000)
+  workdayAdjustment Int     @default(0)
+  adjustmentReason  String?
 
+  // LEGACY (jangan dipakai buat hitungan baru)
+  overtimePay Int @default(0)
+  cashAdvance Int @default(0)
+
+  // Relasi lama (legacy / transitional)
   absences  Absence[]
   debts     Debt[]
-  overtimes Overtime[] 
-  bonuses   Bonus[] 
+  overtimes Overtime[]
+  bonuses   Bonus[]
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  // RELASI BARU (SUMBER KEBENARAN)
+  ledgerEntries LedgerEntry[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
-// Menyimpan setiap utang
+// =======================
+// ===== LEGACY MODELS ====
+// =======================
+
+// Utang lama (akan dipensiunkan)
 model Debt {
   id              String        @id @default(cuid())
   description     String
   amount          Int
   date            DateTime      @default(now())
-  
+
   payrollPeriodId String
   payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id])
 }
 
-// Menyimpan setiap tanggal absen
+// Absen
 model Absence {
   id              String        @id @default(cuid())
   date            DateTime
-  
+
   payrollPeriodId String
   payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id])
 }
 
+// Lembur
 model Overtime {
-  id               String   @id @default(cuid())
-  date             DateTime
-  description      String
-  days             Float    // Ubah ke Float untuk hari pecahan (opsional)
-  
-  // --- UBAH BAGIAN INI ---
-  amount           Int      // Ganti 'calculatedAmount' menjadi 'amount'
+  id          String   @id @default(cuid())
+  date        DateTime
+  description String
+  days        Float
+  amount      Int
 
   payrollPeriodId String
   payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id], onDelete: Cascade)
 }
 
+// Bonus / angpao lama
 model Bonus {
   id          String   @id @default(cuid())
   date        DateTime
   description String
-  amount      Int      // Jumlah bonus (nilai langsung)
+  amount      Int
 
   payrollPeriodId String
   payrollPeriod   PayrollPeriod @relation(fields: [payrollPeriodId], references: [id], onDelete: Cascade)
+}
+
+// =======================
+// ===== LEDGER CORE =====
+// =======================
+
+enum LedgerType {
+  DEBT_ADD        // pinjam uang
+  DEBT_PAYMENT    // cicilan utang
+  SALARY          // gaji kotor
+  CASH_TAKEN      // uang diambil
+  BONUS           // bonus / angpao
+}
+
+model LedgerEntry {
+  id        String      @id @default(cuid())
+  date      DateTime    @default(now())
+  type      LedgerType
+  amount    Int         // selalu positif
+  note      String?
+
+  payrollPeriodId String?
+  payrollPeriod   PayrollPeriod? @relation(fields: [payrollPeriodId], references: [id])
+
+  createdAt DateTime @default(now())
 }

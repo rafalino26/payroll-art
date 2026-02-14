@@ -1,265 +1,265 @@
-// file: app/actions.ts
-'use server';
+  // file: app/actions.ts
+  'use server';
 
-import { prisma } from '@/app/lib/prisma'
-import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
+  import { prisma } from '@/app/lib/prisma'
+  import { revalidatePath } from 'next/cache';
+  import { redirect } from 'next/navigation';
 
-// Mengambil periode terbaru
-export async function getLatestPayrollData() {
-  return await prisma.payrollPeriod.findFirst({
-    orderBy: { createdAt: 'desc' },
-    include: { 
-      absences: true, 
-      debts: true,
-      overtimes: true, // <-- Tambahkan ini
-      bonuses: true    // <-- Tambahkan ini
-    },
-  });
-}
+  // Mengambil periode terbaru
+  export async function getLatestPayrollData() {
+    return await prisma.payrollPeriod.findFirst({
+      orderBy: { createdAt: 'desc' },
+      include: { 
+        absences: true, 
+        debts: true,
+        overtimes: true, // <-- Tambahkan ini
+        bonuses: true    // <-- Tambahkan ini
+      },
+    });
+  }
 
-// Mengambil periode berdasarkan ID-nya
-export async function getPeriodById(id: string) {
-  return await prisma.payrollPeriod.findUnique({
-    where: { id },
-    include: { 
-      absences: true, 
-      debts: true,
-      overtimes: true, // <-- Tambahkan ini
-      bonuses: true    // <-- Tambahkan ini
-    },
-  });
-}
+  // Mengambil periode berdasarkan ID-nya
+  export async function getPeriodById(id: string) {
+    return await prisma.payrollPeriod.findUnique({
+      where: { id },
+      include: { 
+        absences: true, 
+        debts: true,
+        overtimes: true, // <-- Tambahkan ini
+        bonuses: true    // <-- Tambahkan ini
+      },
+    });
+  }
 
-// Mengambil daftar semua periode untuk dropdown
-export async function getAllPeriods() {
-  return await prisma.payrollPeriod.findMany({
-    orderBy: { startDate: 'desc' },
-    select: { id: true, name: true },
-  });
-}
+  // Mengambil daftar semua periode untuk dropdown
+  export async function getAllPeriods() {
+    return await prisma.payrollPeriod.findMany({
+      orderBy: { startDate: 'desc' },
+      select: { id: true, name: true },
+    });
+  }
 
-// Membuat periode baru
-export async function createPayrollPeriod(formData: FormData) {
-  const name = formData.get('name') as string;
-  const startDateValue = formData.get('startDate') as string;
-  const endDateValue = formData.get('endDate') as string;
+  // Membuat periode baru
+  export async function createPayrollPeriod(formData: FormData) {
+    const name = formData.get('name') as string;
+    const startDateValue = formData.get('startDate') as string;
+    const endDateValue = formData.get('endDate') as string;
 
-  if (!name || !startDateValue || !endDateValue) return;
+    if (!name || !startDateValue || !endDateValue) return;
 
-  const startDate = new Date(startDateValue + 'T00:00:00.000Z');
-  const endDate = new Date(endDateValue + 'T00:00:00.000Z');
+    const startDate = new Date(startDateValue + 'T00:00:00.000Z');
+    const endDate = new Date(endDateValue + 'T00:00:00.000Z');
 
-  await prisma.payrollPeriod.create({
-    data: { name, startDate, endDate, dailyRate: 75000 },
-  });
+    await prisma.payrollPeriod.create({
+      data: { name, startDate, endDate, dailyRate: 75000 },
+    });
 
-  revalidatePath('/');
-}
+    revalidatePath('/');
+  }
 
-export async function updateDailyRate(formData: FormData) {
-  const id = formData.get('id') as string;
-  const newRate = Number(formData.get('dailyRate'));
+  export async function updateDailyRate(formData: FormData) {
+    const id = formData.get('id') as string;
+    const newRate = Number(formData.get('dailyRate'));
 
-  if (!id || !newRate) return;
+    if (!id || !newRate) return;
 
-  await prisma.payrollPeriod.update({
-    where: { id },
-    data: { dailyRate: newRate },
-  });
-  revalidatePath('/');
-}
+    await prisma.payrollPeriod.update({
+      where: { id },
+      data: { dailyRate: newRate },
+    });
+    revalidatePath('/');
+  }
 
-// FUNGSI BARU UNTUK PENYESUAIAN HARI KERJA
-export async function updateWorkdayAdjustment(formData: FormData) {
-  const id = formData.get('id') as string;
-  const adjustment = Number(formData.get('adjustment'));
-  const reason = formData.get('reason') as string;
+  // FUNGSI BARU UNTUK PENYESUAIAN HARI KERJA
+  export async function updateWorkdayAdjustment(formData: FormData) {
+    const id = formData.get('id') as string;
+    const adjustment = Number(formData.get('adjustment'));
+    const reason = formData.get('reason') as string;
 
-  if (!id) return;
+    if (!id) return;
 
-  await prisma.payrollPeriod.update({
-    where: { id },
-    data: { workdayAdjustment: adjustment, adjustmentReason: reason },
-  });
-  revalidatePath('/');
-}
+    await prisma.payrollPeriod.update({
+      where: { id },
+      data: { workdayAdjustment: adjustment, adjustmentReason: reason },
+    });
+    revalidatePath('/');
+  }
 
-// --- FUNGSI BARU UNTUK LEMBUR ---
-export async function addOvertime(formData: FormData) {
-  const periodId = formData.get('id') as string;
-  const date = new Date((formData.get('date') as string) + 'T00:00:00.000Z');
-  const description = formData.get('description') as string;
-  const days = Number(formData.get('days'));
-  const amount = Number(formData.get('amount'));
+  // --- FUNGSI BARU UNTUK LEMBUR ---
+  export async function addOvertime(formData: FormData) {
+    const periodId = formData.get('id') as string;
+    const date = new Date((formData.get('date') as string) + 'T00:00:00.000Z');
+    const description = formData.get('description') as string;
+    const days = Number(formData.get('days'));
+    const amount = Number(formData.get('amount'));
 
-  const period = await prisma.payrollPeriod.findUnique({ where: { id: periodId } });
-  if (!period) return;
+    const period = await prisma.payrollPeriod.findUnique({ where: { id: periodId } });
+    if (!period) return;
 
-  const calculatedAmount = days * period.dailyRate;
+    const calculatedAmount = days * period.dailyRate;
 
-  await prisma.overtime.create({
-    data: { payrollPeriodId: periodId, date, description, days, amount },
-  });
-  revalidatePath('/');
-}
-export async function deleteOvertime(id: string) {
-  await prisma.overtime.delete({ where: { id } });
-  revalidatePath('/');
-}
+    await prisma.overtime.create({
+      data: { payrollPeriodId: periodId, date, description, days, amount },
+    });
+    revalidatePath('/');
+  }
+  export async function deleteOvertime(id: string) {
+    await prisma.overtime.delete({ where: { id } });
+    revalidatePath('/');
+  }
 
-// --- FUNGSI BARU UNTUK BONUS ---
-export async function addBonus(formData: FormData) {
-  const periodId = formData.get('id') as string;
-  const date = new Date((formData.get('date') as string) + 'T00:00:00.000Z');
-  const description = formData.get('description') as string;
-  const amount = Number(formData.get('amount'));
+  // --- FUNGSI BARU UNTUK BONUS ---
+  export async function addBonus(formData: FormData) {
+    const periodId = formData.get('id') as string;
+    const date = new Date((formData.get('date') as string) + 'T00:00:00.000Z');
+    const description = formData.get('description') as string;
+    const amount = Number(formData.get('amount'));
 
-  await prisma.bonus.create({
-    data: { payrollPeriodId: periodId, date, description, amount },
-  });
-  revalidatePath('/');
-}
-export async function deleteBonus(id: string) {
-  await prisma.bonus.delete({ where: { id } });
-  revalidatePath('/');
-}
-
-
-// helper kecil untuk aman dari "TZ off-by-one"
-function parseDateOnly(dateStr?: string | null): Date | undefined {
-  if (!dateStr) return undefined;
-  // Buat tanggal di tengah hari UTC agar tidak loncat hari oleh TZ
-  const d = new Date(`${dateStr}T12:00:00.000Z`);
-  return isNaN(d.getTime()) ? undefined : d;
-}
-
-// --- Menambah utang baru ---
-export async function addDebt(formData: FormData) {
-  const periodId = formData.get('periodId') as string;
-  const description = formData.get('description') as string;
-  const amount = Number(formData.get('amount'));
-  const dateFromForm = parseDateOnly(formData.get('date') as string | null); // <- baru
-
-  if (!periodId || !description || !Number.isFinite(amount)) return;
-
-  await prisma.debt.create({
-    data: {
-      payrollPeriodId: periodId,
-      description,
-      amount,
-      ...(dateFromForm ? { date: dateFromForm } : {}), // kalau kosong, pakai default(now())
-    },
-  });
-  revalidatePath('/');
-}
+    await prisma.bonus.create({
+      data: { payrollPeriodId: periodId, date, description, amount },
+    });
+    revalidatePath('/');
+  }
+  export async function deleteBonus(id: string) {
+    await prisma.bonus.delete({ where: { id } });
+    revalidatePath('/');
+  }
 
 
-// Menambah absen baru
-export async function addAbsence(formData: FormData) {
-  const periodId = formData.get('periodId') as string;
-  const dateString = formData.get('date') as string;
+  // helper kecil untuk aman dari "TZ off-by-one"
+  function parseDateOnly(dateStr?: string | null): Date | undefined {
+    if (!dateStr) return undefined;
+    // Buat tanggal di tengah hari UTC agar tidak loncat hari oleh TZ
+    const d = new Date(`${dateStr}T12:00:00.000Z`);
+    return isNaN(d.getTime()) ? undefined : d;
+  }
 
-  if (!periodId || !dateString) return;
+  // --- Menambah utang baru ---
+  export async function addDebt(formData: FormData) {
+    const periodId = formData.get('periodId') as string;
+    const description = formData.get('description') as string;
+    const amount = Number(formData.get('amount'));
+    const dateFromForm = parseDateOnly(formData.get('date') as string | null); // <- baru
 
-  await prisma.absence.create({
-    data: { payrollPeriodId: periodId, date: new Date(dateString) },
-  });
-  revalidatePath('/');
-}
+    if (!periodId || !description || !Number.isFinite(amount)) return;
 
-// --- FUNGSI-FUNGSI BARU UNTUK DELETE ---
+    await prisma.debt.create({
+      data: {
+        payrollPeriodId: periodId,
+        description,
+        amount,
+        ...(dateFromForm ? { date: dateFromForm } : {}), // kalau kosong, pakai default(now())
+      },
+    });
+    revalidatePath('/');
+  }
 
-export async function deleteDebt(debtId: string) {
-  await prisma.debt.delete({
-    where: { id: debtId },
-  });
-  revalidatePath('/');
-}
 
-export async function deleteAbsence(absenceId: string) {
-  await prisma.absence.delete({
-    where: { id: absenceId },
-  });
-  revalidatePath('/');
-}
+  // Menambah absen baru
+  export async function addAbsence(formData: FormData) {
+    const periodId = formData.get('periodId') as string;
+    const dateString = formData.get('date') as string;
 
-export async function deletePeriod(periodId: string) {
-  // Hati-hati: Menghapus periode akan menghapus semua utang dan absen di dalamnya
-  // Kita gunakan transaction untuk memastikan semua terhapus bersamaan
-  await prisma.$transaction([
-    prisma.debt.deleteMany({ where: { payrollPeriodId: periodId } }),
-    prisma.absence.deleteMany({ where: { payrollPeriodId: periodId } }),
-    prisma.payrollPeriod.delete({ where: { id: periodId } }),
-  ]);
-  
-  revalidatePath('/');
-  redirect('/'); // Arahkan kembali ke homepage setelah menghapus
-}
+    if (!periodId || !dateString) return;
 
-// --- FUNGSI-FUNGSI BARU UNTUK UPDATE ---
+    await prisma.absence.create({
+      data: { payrollPeriodId: periodId, date: new Date(dateString) },
+    });
+    revalidatePath('/');
+  }
 
-export async function updateDebt(formData: FormData) {
-  const id = formData.get('id') as string;
-  const description = formData.get('description') as string;
-  const amount = Number(formData.get('amount'));
-  const dateFromForm = parseDateOnly(formData.get('date') as string | null); // <- baru
+  // --- FUNGSI-FUNGSI BARU UNTUK DELETE ---
 
-  if (!id || !description || !Number.isFinite(amount)) return;
+  export async function deleteDebt(debtId: string) {
+    await prisma.debt.delete({
+      where: { id: debtId },
+    });
+    revalidatePath('/');
+  }
 
-  await prisma.debt.update({
-    where: { id },
-    data: {
-      description,
-      amount,
-      ...(dateFromForm ? { date: dateFromForm } : {}), // boleh tidak diubah
-    },
-  });
-  revalidatePath('/');
-}
+  export async function deleteAbsence(absenceId: string) {
+    await prisma.absence.delete({
+      where: { id: absenceId },
+    });
+    revalidatePath('/');
+  }
 
-export async function updateCashAdvance(formData: FormData) {
-  const id = formData.get('id') as string;
-  const amount = Number(formData.get('cashAdvance') || '0');
+  export async function deletePeriod(periodId: string) {
+    // Hati-hati: Menghapus periode akan menghapus semua utang dan absen di dalamnya
+    // Kita gunakan transaction untuk memastikan semua terhapus bersamaan
+    await prisma.$transaction([
+      prisma.debt.deleteMany({ where: { payrollPeriodId: periodId } }),
+      prisma.absence.deleteMany({ where: { payrollPeriodId: periodId } }),
+      prisma.payrollPeriod.delete({ where: { id: periodId } }),
+    ]);
+    
+    revalidatePath('/');
+    redirect('/'); // Arahkan kembali ke homepage setelah menghapus
+  }
 
-  if (!id) return;
+  // --- FUNGSI-FUNGSI BARU UNTUK UPDATE ---
 
-  await prisma.payrollPeriod.update({
-    where: { id },
-    data: { cashAdvance: amount },
-  });
+  export async function updateDebt(formData: FormData) {
+    const id = formData.get('id') as string;
+    const description = formData.get('description') as string;
+    const amount = Number(formData.get('amount'));
+    const dateFromForm = parseDateOnly(formData.get('date') as string | null); // <- baru
 
-  revalidatePath('/');
-}
+    if (!id || !description || !Number.isFinite(amount)) return;
 
-export async function updateAbsence(formData: FormData) {
-  const id = formData.get('id') as string;
-  const date = new Date((formData.get('date') as string) + 'T00:00:00.000Z');
+    await prisma.debt.update({
+      where: { id },
+      data: {
+        description,
+        amount,
+        ...(dateFromForm ? { date: dateFromForm } : {}), // boleh tidak diubah
+      },
+    });
+    revalidatePath('/');
+  }
 
-  if (!id || !date) return;
-  
-  await prisma.absence.update({
-    where: { id },
-    data: { date },
-  });
-  revalidatePath('/');
-}
+  export async function updateCashAdvance(formData: FormData) {
+    const id = formData.get('id') as string;
+    const amount = Number(formData.get('cashAdvance') || '0');
 
-export async function updatePeriod(formData: FormData) {
-  const id = formData.get('id') as string;
-  const name = formData.get('name') as string;
-  const startDateValue = formData.get('startDate') as string;
-  const endDateValue = formData.get('endDate') as string;
+    if (!id) return;
 
-  if (!id || !name || !startDateValue || !endDateValue) return;
-  
-  const startDate = new Date(startDateValue + 'T00:00:00.000Z');
-  const endDate = new Date(endDateValue + 'T00:00:00.000Z');
+    await prisma.payrollPeriod.update({
+      where: { id },
+      data: { cashAdvance: amount },
+    });
 
-  await prisma.payrollPeriod.update({
-    where: { id },
-    data: { name, startDate, endDate },
-  });
+    revalidatePath('/');
+  }
 
-  revalidatePath('/');
-}
+  export async function updateAbsence(formData: FormData) {
+    const id = formData.get('id') as string;
+    const date = new Date((formData.get('date') as string) + 'T00:00:00.000Z');
+
+    if (!id || !date) return;
+    
+    await prisma.absence.update({
+      where: { id },
+      data: { date },
+    });
+    revalidatePath('/');
+  }
+
+  export async function updatePeriod(formData: FormData) {
+    const id = formData.get('id') as string;
+    const name = formData.get('name') as string;
+    const startDateValue = formData.get('startDate') as string;
+    const endDateValue = formData.get('endDate') as string;
+
+    if (!id || !name || !startDateValue || !endDateValue) return;
+    
+    const startDate = new Date(startDateValue + 'T00:00:00.000Z');
+    const endDate = new Date(endDateValue + 'T00:00:00.000Z');
+
+    await prisma.payrollPeriod.update({
+      where: { id },
+      data: { name, startDate, endDate },
+    });
+
+    revalidatePath('/');
+  }
